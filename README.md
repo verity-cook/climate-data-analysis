@@ -1,4 +1,5 @@
 # climate-data-analysis
+![CI](https://github.com/verity-cook/climate-data-analysis/actions/workflows/ci.yml/badge.svg)
 pipeline to load, validate, store and analyse climate data
 
 data from: 
