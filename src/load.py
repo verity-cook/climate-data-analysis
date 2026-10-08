@@ -2,11 +2,12 @@ import io
 import logging
 
 import pandas as pd
-import psycopg2
 from psycopg2.extras import execute_values
 
 from src import config
 from src.extract import s3_client
+from src.db import get_connection
+from src.validate import validate
 
 log = logging.getLogger(__name__)
 
@@ -88,13 +89,8 @@ def load(df: pd.DataFrame) -> None:
     rows = list(
         df.astype(object).where(df.notna(), None).itertuples(index=False, name = None)
     )
-    conn = psycopg2.connect(
-        host=config.POSTGRES_HOST,
-        port=config.POSTGRES_PORT,
-        user=config.POSTGRES_USER,
-        password=config.POSTGRES_PASSWORD,
-        dbname=config.POSTGRES_DB
-    )
+    conn = get_connection()
+
     try:
         with conn: # commits on success, rolls back on exception, prevent half loaded table
             with conn.cursor() as cur:
@@ -108,6 +104,7 @@ def load(df: pd.DataFrame) -> None:
 
 def run() -> None:
     df = clean(read_latest_raw())
+    validate(df) # raises if a blocking check fails
     load(df)
     log.info("Loaded %d rows into emissions", len(df))
 
