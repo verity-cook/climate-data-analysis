@@ -1,14 +1,16 @@
 import logging
 import uuid
 from dataclasses import dataclass
-from datetime import date
+from datetime import datetime, timezone
 
 import pandas as pd
 
 from src.db import get_connection
 
-
 log = logging.getLogger(__name__)
+
+def current_year() -> int:
+    return datetime.now(timezone.utc).year
 
 MIN_ROWS = 10_000
 
@@ -49,7 +51,7 @@ def check_row_count(df: pd.DataFrame) -> CheckResult:
     )
 
 def check_year_range(df: pd.DataFrame) -> CheckResult:
-    this_year = date.today().year
+    this_year = current_year()
     bad = df[(df["year"] < 1700) | (df["year"] > this_year)]
     return CheckResult(
         "year_range",
@@ -62,7 +64,7 @@ def check_non_negative(df: pd.DataFrame) -> CheckResult:
     counts = {c: int((df[c] < 0).sum()) for c in ['population','co2','co2_per_capita']}
     counts = {c: n for c, n in counts.items() if n}
     return CheckResult(
-        f"non_negative_values",
+        "non_negative_values",
         "error",
         not counts,
         f"negative values: {counts}" if counts else "no negative values",
@@ -111,7 +113,7 @@ def check_freshness(df: pd.DataFrame) -> CheckResult:
     return CheckResult(
         "freshness", 
         "warning", 
-        latest >= date.today().year - 3,
+        latest >= current_year() - 3,
         f"latest year in data: {latest}",
     )
 
@@ -129,10 +131,9 @@ def write_log(results: list[CheckResult], run_id: str) -> None:
     rows = [(run_id, r.name, r.severity, r.passed, r.details) for r in results]
     conn = get_connection()
     try:
-        with conn:
-            with conn.cursor() as cur:
-                cur.execute(CREATE_LOG_TABLE)
-                cur.executemany(INSERT_LOG, rows)
+        with conn, conn.cursor() as cur:
+            cur.execute(CREATE_LOG_TABLE)
+            cur.executemany(INSERT_LOG, rows)
     finally:
         conn.close()
 

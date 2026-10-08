@@ -5,8 +5,8 @@ import pandas as pd
 from psycopg2.extras import execute_values
 
 from src import config
-from src.extract import s3_client
 from src.db import get_connection
+from src.extract import s3_client
 from src.validate import validate
 
 log = logging.getLogger(__name__)
@@ -92,12 +92,12 @@ def load(df: pd.DataFrame) -> None:
     conn = get_connection()
 
     try:
-        with conn: # commits on success, rolls back on exception, prevent half loaded table
-            with conn.cursor() as cur:
-                cur.execute(CREATE_TABLE)
-                cur.execute(ADD_COLUMN)
-                execute_values(cur, UPSERT, rows, page_size=1000)
-                cur.execute(CREATE_VIEWS)
+        # commits on success, rolls back on exception, prevent half loaded table
+        with conn, conn.cursor() as cur:
+            cur.execute(CREATE_TABLE)
+            cur.execute(ADD_COLUMN)
+            execute_values(cur, UPSERT, rows, page_size=1000)
+            cur.execute(CREATE_VIEWS)
     finally:
         conn.close()
 

@@ -1,5 +1,5 @@
 import logging
-from datetime import date
+from datetime import datetime, timezone
 
 import boto3
 import requests
@@ -25,7 +25,7 @@ def extract() -> str:
     response = requests.get(config.SOURCE_URL, timeout=60)
     response.raise_for_status()
 
-    key = f"raw/{date.today().isoformat()}/owid-co2-data.csv"
+    key = f"raw/{datetime.now(timezone.utc).date().isoformat()}/owid-co2-data.csv"
     s3_client().put_object(
         Bucket=config.RAW_BUCKET, Key=key, Body=response.content
     )
