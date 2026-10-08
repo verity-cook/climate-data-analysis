@@ -14,3 +14,9 @@ RAW_BUCKET = os.getenv("RAW_BUCKET", "climate-raw")
 SOURCE_URL = (
     "https://raw.githubusercontent.com/owid/co2-data/master/owid-co2-data.csv"
 )
+
+POSTGRES_HOST = os.getenv("POSTGRES_HOST", "localhost")
+POSTGRES_PORT = int(os.environ["POSTGRES_PORT"])
+POSTGRES_USER = os.environ["POSTGRES_USER"]
+POSTGRES_PASSWORD = os.environ["POSTGRES_PASSWORD"]
+POSTGRES_DB = os.environ["POSTGRES_DB"]
