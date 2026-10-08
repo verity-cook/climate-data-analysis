@@ -10,6 +10,7 @@ from src.extract import s3_client
 
 log = logging.getLogger(__name__)
 
+# source columns
 COLUMNS = ["country", "year", "iso_code", "population", 
            "gdp", "co2", "co2_per_capita", "total_ghg"
            ]
@@ -24,14 +25,30 @@ CREATE TABLE IF NOT EXISTS emissions (
     co2 DOUBLE PRECISION,
     co2_per_capita DOUBLE PRECISION,
     total_ghg DOUBLE PRECISION,
-    loaded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    is_aggregate BOOLEAN NOT NULL DEFAULT FALSE,
+    loaded_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     PRIMARY KEY (country, year)
 );
 """
 
+# added is_aggreate column after table already exists
+ADD_COLUMN = """
+ALTER TABLE emissions 
+    ADD COLUMN IF NOT EXISTS is_aggregate BOOLEAN NOT NULL DEFAULT FALSE;
+"""
+
+CREATE_VIEWS = """
+CREATE OR REPLACE VIEW emissions_countries AS
+    SELECT * FROM emissions WHERE NOT is_aggregate;
+
+CREATE OR REPLACE VIEW emissions_aggregates AS
+    SELECT * FROM emissions WHERE is_aggregate;
+"""
+
 UPSERT = """
 INSERT INTO emissions 
-    (country, year, iso_code, population, gdp, co2, co2_per_capita, total_ghg)
+    (country, year, iso_code, population, gdp, co2, co2_per_capita, 
+    total_ghg, is_aggregate)
 VALUES %s
 ON CONFLICT (country, year) DO UPDATE SET
     iso_code = EXCLUDED.iso_code,
@@ -40,6 +57,7 @@ ON CONFLICT (country, year) DO UPDATE SET
     co2 = EXCLUDED.co2,
     co2_per_capita = EXCLUDED.co2_per_capita,
     total_ghg = EXCLUDED.total_ghg,
+    is_aggregate = EXCLUDED.is_aggregate,
     loaded_at = NOW();
 """
 
@@ -62,6 +80,7 @@ def clean(df: pd.DataFrame) -> pd.DataFrame:
     df = df.dropna(subset=["country", "year"])
     df["year"] = df["year"].astype(int)
     df = df.drop_duplicates(subset=["country", "year"], keep="last")
+    df["is_aggregate"] = df["iso_code"].isna()
     return df
 
 def load(df: pd.DataFrame) -> None:
@@ -80,7 +99,9 @@ def load(df: pd.DataFrame) -> None:
         with conn: # commits on success, rolls back on exception, prevent half loaded table
             with conn.cursor() as cur:
                 cur.execute(CREATE_TABLE)
+                cur.execute(ADD_COLUMN)
                 execute_values(cur, UPSERT, rows, page_size=1000)
+                cur.execute(CREATE_VIEWS)
     finally:
         conn.close()
 
