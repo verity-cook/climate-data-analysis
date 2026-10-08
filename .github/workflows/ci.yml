@@ -24,3 +24,6 @@ jobs:
 
       - name: Test
         run: python -m pytest -v
+
+      - name: Build Docker image
+        run: docker build -t climate-pipeline .
