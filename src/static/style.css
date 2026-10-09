@@ -1,0 +1,25 @@
+body {
+  font-family: system-ui, sans-serif;
+  margin: 0;
+  color: #1a1a1a;
+}
+
+main {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.source {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+#chart svg {
+  width: 100%;
+  height: auto;
+}
+
+.error {
+  color: #b00020;
+}

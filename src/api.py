@@ -1,4 +1,7 @@
+from pathlib import Path
+
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.staticfiles import StaticFiles
 from psycopg2.extras import RealDictCursor
 
 from src.db import get_connection
@@ -68,3 +71,10 @@ def get_latest_quality():
         ORDER BY id
     """
     return query(sql)
+
+
+app.mount(
+    "/",
+    StaticFiles(directory=Path(__file__).parent / "static", html=True),
+    name="static",
+)
