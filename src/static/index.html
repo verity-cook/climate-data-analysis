@@ -25,8 +25,9 @@
         </p>
     </div>
 
-    <div id="line-graph">
-        <section class="controls">
+    <section id="line-graph">
+        <h2>Emissions over time</h2>
+        <div class="controls">
         <label>Metric
             <select id="metric"></select>
         </label>
@@ -35,16 +36,54 @@
                 placeholder="Type a name…" autocomplete="off">
             <datalist id="entity-list"></datalist>
         </label>
-        </section>
+      </div>
 
         <ul id="chips"></ul>
         <p id="message" role="status"></p>
         <div id="chart"></div>
-    </div>
+    </section>
+
+    <section id="shares">
+      <h2>Fraction of global emissions</h2>
+      <p class="source">
+        Fossil CO₂ only (land-use change is excluded). Click a continent to
+        see its countries.
+      </p>
+
+      <div class="controls">
+        <label>
+          <span>Year: <strong id="shares-year-label"></strong></span>
+          <input id="shares-year" type="range" min="1950" max="2023"
+                 step="1" disabled>
+        </label>
+        <button id="shares-back" type="button" hidden>← All continents</button>
+      </div>
+
+      <h3 id="shares-title"></h3>
+      <p id="shares-sub"></p>
+      <p id="shares-message" role="status"></p>
+
+      <div class="shares-layout">
+        <div id="shares-figure" class="shares-figure">
+          <div id="shares-chart"></div>
+          <div id="shares-tooltip" class="tip" hidden></div>
+        </div>
+        <div class="shares-table-wrap">
+          <table id="shares-table">
+            <thead>
+              <tr><th>Name</th><th>CO₂ (Mt)</th><th>Share</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+      <p id="shares-note" class="source"></p>
+    </section>
 
   </main>
   <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
   <script src="app.js"></script>
+  <script src="shares.js"></script>
 </body>
 
 </html>
