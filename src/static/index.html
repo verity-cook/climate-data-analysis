@@ -1,20 +1,50 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Climate data explorer</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Mono:wght@400;500;700&family=Josefin+Sans:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
+    
+    <title>Climate data explorer</title>
+    <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
-    <main>
-        <h1>Climate data explorer</h1>
-        <p class="'source">
-            Source: Our World in Data (CC BY 4.0), via the Global Carbon Project and others.
+  <main>
+    <div id="header">
+        <h1>Emissions Data Explorer</h1>
+    </div>
+
+    <div id="sub-heading">
+        <p class="source">
+        Source: Our World in Data (CC BY 4.0), via the Global Carbon Project
+        and others.
         </p>
-    <div id="chart"></div>
+    </div>
+
+    <div id="line-graph">
+        <section class="controls">
+        <label>Metric
+            <select id="metric"></select>
+        </label>
+        <label>Add a country or aggregate
+            <input id="entity-input" list="entity-list"
+                placeholder="Type a name…" autocomplete="off">
+            <datalist id="entity-list"></datalist>
+        </label>
+        </section>
+
+        <ul id="chips"></ul>
+        <p id="message" role="status"></p>
+        <div id="chart"></div>
+    </div>
+
   </main>
   <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
   <script src="app.js"></script>
 </body>
+
 </html>

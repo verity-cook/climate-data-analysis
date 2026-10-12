@@ -1,5 +1,6 @@
 import io
 import logging
+from pathlib import Path
 
 import pandas as pd
 from psycopg2.extras import execute_values
@@ -62,6 +63,24 @@ ON CONFLICT (country, year) DO UPDATE SET
     loaded_at = NOW();
 """
 
+CONTINENTS_CSV = Path(__file__).parent / "reference" / "continents.csv"
+
+CREATE_CONTINENTS = """
+CREATE TABLE IF NOT EXISTS country_continent (
+    iso_code  TEXT PRIMARY KEY,
+    continent TEXT NOT NULL
+);
+"""
+
+UPSERT_CONTINENTS = """
+INSERT INTO country_continent (iso_code, continent) VALUES %s
+ON CONFLICT (iso_code) DO UPDATE SET continent = EXCLUDED.continent;
+"""
+
+def read_continents() -> list[tuple[str, str]]:
+    df = pd.read_csv(CONTINENTS_CSV)
+    return list(df.itertuples(index=False, name=None))
+
 def read_latest_raw() -> pd.DataFrame:
     s3 = s3_client()
     listing = s3.list_objects_v2(Bucket=config.RAW_BUCKET, Prefix="raw/")
@@ -98,6 +117,8 @@ def load(df: pd.DataFrame) -> None:
             cur.execute(ADD_COLUMN)
             execute_values(cur, UPSERT, rows, page_size=1000)
             cur.execute(CREATE_VIEWS)
+            cur.execute(CREATE_CONTINENTS)
+            execute_values(cur, UPSERT_CONTINENTS, read_continents())
     finally:
         conn.close()
 

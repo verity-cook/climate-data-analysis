@@ -72,6 +72,63 @@ def get_latest_quality():
     """
     return query(sql)
 
+INTL_TRANSPORT = "International aviation"
+INTL_SHIPPING = "International shipping"
+
+
+@app.get("/shares")
+def get_shares(year: int | None = Query(None, ge=1750, le=2100)):
+    if year is None:
+        latest = query(
+            "SELECT max(year) AS year FROM emissions_aggregates "
+            "WHERE country = 'World' AND co2 IS NOT NULL"
+        )
+        year = latest[0]["year"]
+        if year is None:
+            raise HTTPException(status_code=404, detail="No world totals available")
+
+    aggregates = query(
+        "SELECT country, co2 FROM emissions_aggregates "
+        "WHERE year = %s AND country IN ('World', %s, %s) AND co2 IS NOT NULL",
+        (year, INTL_TRANSPORT, INTL_SHIPPING),
+    )
+    totals = {r["country"]: r["co2"] for r in aggregates}
+    world = totals.get("World")
+    if world is None:
+        raise HTTPException(status_code=404, detail=f"No world total for {year}")
+
+    rows = query(
+        "SELECT COALESCE(cc.continent, 'Unassigned') AS continent, "
+        "e.country, e.iso_code, e.co2 "
+        "FROM emissions_countries e "
+        "LEFT JOIN country_continent cc ON cc.iso_code = e.iso_code "
+        "WHERE e.year = %s AND e.co2 > 0 "
+        "ORDER BY e.co2 DESC",
+        (year,),
+    )
+
+    continents: dict[str, dict] = {}
+    for r in rows:
+        group = continents.setdefault(
+            r["continent"], {"name": r["continent"], "value": 0.0, "countries": []}
+        )
+        group["value"] += r["co2"]
+        group["countries"].append(
+            {"name": r["country"], "iso_code": r["iso_code"], "value": r["co2"]}
+        )
+    ordered = sorted(continents.values(), key=lambda c: c["value"], reverse=True)
+
+    transport = totals.get(INTL_TRANSPORT, 0.0)
+    shipping = totals.get(INTL_SHIPPING, 0.0)
+    allocated = sum(c["value"] for c in ordered) + transport + shipping
+    return {
+        "year": year,
+        "world_total": world,
+        "continents": ordered,
+        "international_transport": transport,
+        "international_shipping": shipping,
+        "unallocated": world - allocated,
+    }
 
 app.mount(
     "/",

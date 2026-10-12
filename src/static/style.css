@@ -1,18 +1,36 @@
 body {
-  font-family: system-ui, sans-serif;
-  margin: 0;
-  color: #1a1a1a;
+    font-family: "Fira Mono", monospace;
+    font-optical-sizing: auto;
+    font-style: normal;
+    margin: 0;
+    color: #000;
+    background-color: #fff;
 }
 
 main {
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 2rem 1rem;
+    /* max-width: 960px; */
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+#header h1 {
+    margin: auto;
+    font-weight: 100;
 }
 
 .source {
-  color: #666;
   font-size: 0.9rem;
+}
+
+#line-graph {
+    max-width: 900px;
+    border-style: solid;
+    border-color: #000;
+    border-width: 2px;
+    border-radius: 5px;
+    margin: auto;
+    /* display: flex; */
+    /* justify-content: center; */
 }
 
 #chart svg {
@@ -22,4 +40,82 @@ main {
 
 .error {
   color: #b00020;
+}
+
+.controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    margin: 1.5rem 1.5rem 1rem;
+}
+
+.controls label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+}
+
+.controls select,
+.controls input {
+  font: inherit;
+  padding: 0.4rem 0.6rem;
+  min-width: 14rem;
+}
+
+#chips {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0;
+  margin: 0 1.5rem 1rem;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.4rem 0.25rem 0.6rem;
+  border: 1px solid #ddd;
+  border-radius: 999px;
+  font-size: 0.9rem;
+}
+
+.chip button {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.swatch {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+}
+
+#message {
+  min-height: 1.2rem;
+  font-size: 0.9rem;
+}
+
+#metric {
+    border-radius: 50px;
+}
+
+#entity-input {
+    border-radius: 20px;
+}
+
+#pie-chart {
+    max-width: 900px;
+    border-style: solid;
+    border-color: #000;
+    border-width: 2px;
+    border-radius: 5px;
+    margin: auto;
+    /* display: flex; */
+    /* justify-content: center; */
 }

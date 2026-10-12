@@ -92,3 +92,28 @@ def test_quality_latest_returns_rows(fake_query):
     response = client.get("/quality/latest")
     assert response.status_code == 200
     assert response.json() == rows
+
+def test_shares_groups_countries_by_continent(monkeypatch):
+    responses = [
+        [
+            {"country": "World", "co2": 100.0},
+            {"country": "International aviation", "co2": 5.0},
+        ],
+        [
+            {"continent": "Asia", "country": "China", "iso_code": "CHN", "co2": 40.0},
+            {"continent": "Asia", "country": "India", "iso_code": "IND", "co2": 20.0},
+            {"continent": "Europe", "country": "Germany", "iso_code": "DEU", "co2": 10.0},
+        ],
+    ]
+    monkeypatch.setattr(api, "query", lambda sql, params=(): responses.pop(0))
+    data = client.get("/shares?year=2022").json()
+    assert data["year"] == 2022
+    assert [c["name"] for c in data["continents"]] == ["Asia", "Europe"]
+    assert data["continents"][0]["value"] == 60.0
+    assert data["international_transport"] == 5.0
+    assert data["unallocated"] == pytest.approx(25.0)  # 100 - (70 + 5)
+
+
+def test_shares_404_when_no_world_total(monkeypatch):
+    monkeypatch.setattr(api, "query", lambda sql, params=(): [])
+    assert client.get("/shares?year=1800").status_code == 404
